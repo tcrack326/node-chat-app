@@ -3,6 +3,8 @@ const http = require('http');
 const publicPath = path.join(__dirname, '../public');
 const express = require('express');
 const socketIO = require('socket.io');
+const {generateMessage} = require('./utils/message');
+
 const bodyParser = require('body-parser');
 const env = process.env.NODE_ENV || 'development';
 console.log("env*****", env);
@@ -20,17 +22,21 @@ app.use(express.static(publicPath));
 io.on('connection', (socket) => {
   console.log('New user connected');
 
-  socket.emit('newEmail', {
-    from: 'someguy@mail.com',
-    text: 'this is an email',
-    createAt: 123
-  });
+  socket.emit('newMessage', generateMessage('Admin','Welcome to the Chat!'));
 
-  socket.emit('newMessage', {
-    from: 'someguy',
-    text: 'this is a message',
-    createAt: 123
-  });
+  socket.broadcast.emit('newMessage', generateMessage('Admin', 'Welcome a new user to the chat!'));
+
+  // socket.emit('newEmail', {
+  //   from: 'someguy@mail.com',
+  //   text: 'this is an email',
+  //   createAt: 123
+  // });
+  //
+  // socket.emit('newMessage', {
+  //   from: 'someguy',
+  //   text: 'this is a message',
+  //   createAt: 123
+  // });
 
   socket.on('createEmail', (newEmail) => {
     console.log('createEmail: ', newEmail);
@@ -38,11 +44,20 @@ io.on('connection', (socket) => {
 
   socket.on('createMessage', (newMessage) => {
     console.log('createMessage: ', newMessage);
+
+    // io.emit('newMessage', {
+    //   from: message.from,
+    //   text: message.text,
+    //   createdAt: new Date().getTime();
+    // }
+
+    socket.broadcast.emit('newMessage', generateMessage(message.from, message.text);
   });
 
   socket.on(('disconnect'), () => {
     console.log('User was disconnected');
   });
+
 });
 
 app.get('/', (req, res) => {
